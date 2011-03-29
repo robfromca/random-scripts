@@ -1,3 +1,11 @@
+These scripts are provided with no warranty what-so-ever. They've worked for me a little
+bit, and that's all I can say. Don't be in the habit of grabbing random stuff off the
+internet and running it as root. Don't blame me if it eats your system.
+
 ./edit-search-domains.rb
 	A ruby script for Mac OSX that you can run to add or remove search domains
-	from your path. (Must be run as root)
+	from your path. (Must be run as root). You can check your search domains
+	just by running scutil --dns
+
+	
+
