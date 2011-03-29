@@ -1,0 +1,3 @@
+./edit-search-domains.rb
+	A ruby script for Mac OSX that you can run to add or remove search domains
+	from your path. (Must be run as root)
