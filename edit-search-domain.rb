@@ -3,6 +3,12 @@ require 'optparse'
 
 options = {}
 
+def log(message, options)
+  if options[:verbose]
+    puts "DEBUG: " + message
+  end
+end    
+
 optparse = OptionParser.new do |opts|
 	opts.banner = "Usage: edit-search-domain.rb [options] domainname"
 	options[:verbose] = false
@@ -53,7 +59,7 @@ else # not on VPN, so we need to find the big GUID of the active network config
 	serviceKey = serviceKey.gsub!(/.*Service\/(.*)\/DNS/,"\\1").chomp
 	serviceKey = "State:/Network/Service/#{serviceKey}/DNS" 
 end
-puts serviceKey
+log(serviceKey,options)
 #Get our search domains
 dnsQueryResults = `scutil<< EOF
 get #{serviceKey}
@@ -85,13 +91,23 @@ EOF`
 
 # First let's a use a regex to get everything for SearchDomains:
 rawSearchDomains = dnsQueryResults.gsub(/.*SearchDomains : <array> \{\n(.*?)\}.*\}/m, "\\1")
-# Now let's hit the individual lines
 domains = []
-rawSearchDomains.each do |line|
-	if line =~ /\S/
+
+if (rawSearchDomains == dnsQueryResults) || (rawSearchDomains.strip == "")
+   # If there were no search domains we want to add the domain name
+   domainName = dnsQueryResults.gsub(/.*DomainName : (.*?)\n.*/m,"\\1")
+   domainName.strip!
+   log("No SearchDomains found, using DomainName: " + domainName, options)
+   domains.push(domainName)
+else
+   # Now let's hit the individual lines
+   rawSearchDomains.each do |line|
+   	if line =~ /\S/
 		domain = line.split(":")[1]
-		domains.push(domain.strip!)
+		domain.strip!
+		domains.push(domain)
 	end
+   end
 end
 
 # add our domain the user wanted to add (oh yeah, we were doing something here)
@@ -100,7 +116,7 @@ if options[:add]
 elsif options[:remove]
    domains.delete_if { |domain| domain == options[:remove] }
 end
-p domains
+log("New Search Domain List: [" + domains.join(",") + "]", options)
 domainsWithSpaces = domains.join(" ")
 addCommand = "d.add SearchDomains * " + domainsWithSpaces
 
