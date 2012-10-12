@@ -6,7 +6,15 @@ internet and running it as root. Don't blame me if it eats your system.
 	A ruby script for Mac OSX that you can run to add or remove search domains
 	from your path. (Must be run as root). You can check your search domains
 	just by running scutil --dns. Works when you're on a wireless or wired
-	network, or on a Juniper VPN. 
+	network, or on a Juniper VPN. Uses scutil under the hood.
 
-	
+./vpn-charles.rb
+	When you run Charles after starting Juniper's SSL VPN client (Network Connect) it sets
+	the proxy settings, but onto your primary interface instead of the VPN interface. This
+	script copies the config entries over to the VPN interface. So you can start the VPN,
+	start charles, then run ./vpn-charles.rb --on and it will make Charles work. If you
+	shut Charles down, just run ./vpn-charles.rb --off to disable proxying.
 
+These both use scutil.
+
+Charles: http://www.charlesproxy.com
