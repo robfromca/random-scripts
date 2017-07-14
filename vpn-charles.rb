@@ -9,6 +9,18 @@ def log(message, options)
   end
 end    
 
+def retrieveServiceKey(options)
+  juniperState = `scutil<< EOF
+  show State:/Network/Service/net.juniper.pulse.nc.main/IPv4
+  quit
+  EOF`
+
+  log(juniperState, options)
+  serviceKey = juniperState.gsub(/.*net\.juniper\.DSUnderlyingServiceName : (.*?)\s.*/m, "\\1").chomp
+  log(serviceKey, options)
+  return serviceKey
+end
+
 optparse = OptionParser.new do |opts|
 	opts.banner = "Usage: vpn-charles.rb\n Copies proxy settings from your active connection to your juniper vpn settings."
 	options[:verbose] = false
@@ -41,41 +53,37 @@ rescue OptionParser::InvalidOption, OptionParser::MissingArgument
        exit
 end
 
-juniperState = `scutil<< EOF
-show State:/Network/Service/net.juniper.ncproxyd.main/IPv4
-quit
-EOF`
 
-log(juniperState, options)
-
-serviceKey = juniperState.gsub(/.*net\.juniper\.DSUnderlyingServiceName : (.*?)\s.*/m, "\\1").chomp
-
-log(serviceKey, options)
+serviceKey = retrieveServiceKey(options)
 
 if options[:on]
+  puts "Please make sure your VPN is connected and Charles is running, then"
+  puts "press any key to continue..."
+  STDIN.gets
+
   #now save it (must be root :-( )
 results = `scutil<< EOF
-lock
 d.init
 get Setup:/Network/Service/#{serviceKey}/Proxies
-set State:/Network/Service/net.juniper.ncproxyd.main/Proxies
-unlock
+set State:/Network/Service/net.juniper.pulse.nc.main/Proxies
 quit
 EOF`
+  puts "Charles should be recording now. Don't forget to run:"
+  puts 
+  puts "sudo ./vpn-charles.rb --off"
+  puts 
+  puts "to disable proxying when you either close charles or disconnect from the VPN"
 else
   # disable proxying
 results = `scutil<< EOF
-lock
 d.init
-get State:/Network/Service/net.juniper.ncproxyd.main/Proxies
+get State:/Network/Service/net.juniper.pulse.nc.main/Proxies
 d.add HTTPSEnable 0
 d.add HTTPEnable 0
-set State:/Network/Service/net.juniper.ncproxyd.main/Proxies
-unlock
+set State:/Network/Service/net.juniper.pulse.nc.main/Proxies
 quit
 EOF`
 end
-
 
 puts results
 
