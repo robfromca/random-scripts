@@ -16,7 +16,7 @@ def retrieveServiceKey(options, versionIdentifier)
   EOF`
 
   log(juniperState, options)
-  serviceKey = juniperState.gsub(/.*net\.juniper\.DSUnderlyingServiceName : (.*?)\s.*/m, "\\1").chomp
+  serviceKey = juniperState.gsub(/.*net\.pulsesecure\.DSUnderlyingServiceName : (.*?)\s.*/m, "\\1").chomp
   log(serviceKey, options)
   return serviceKey
 end
@@ -56,7 +56,7 @@ rescue OptionParser::InvalidOption, OptionParser::MissingArgument
        exit
 end
 
-versionIdentifier = "net.juniper.pulse.nc.main"
+versionIdentifier = "net.pulsesecure.pulse.nc.main"
 if options[:old]
   versionIdentifier = "net.juniper.ncproxyd.main"
 end
